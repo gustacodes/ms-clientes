@@ -1,15 +1,49 @@
 package io.github.gustacodes.msclientes.application;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import io.github.gustacodes.msclientes.application.representation.ClienteSaveRequest;
+import io.github.gustacodes.msclientes.domain.Cliente;
+import io.github.gustacodes.msclientes.services.ClienteService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
 
 @RestController
+@RequiredArgsConstructor
+@Slf4j
 @RequestMapping("/clientes")
 public class ClienteController {
 
-    @GetMapping
+    private final ClienteService clienteService;
+
+    @GetMapping("/teste")
     public String status() {
+        log.info("OBTENDO STATUS DO MICROSERVICES DE CLIENTES");
         return "ok";
+    }
+
+    @PostMapping
+    public ResponseEntity<?> save(@RequestBody ClienteSaveRequest saveRequest) {
+        var cliente = saveRequest.toModel();
+        clienteService.save(cliente);
+        URI headerLocation = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .query("cpf={cpf}")
+                .buildAndExpand(cliente.getCpf())
+                .toUri();
+        return ResponseEntity.status(HttpStatus.CREATED).body(headerLocation);
+    }
+
+    @GetMapping
+    public ResponseEntity<?> dadosDoCliente(@RequestParam("cpf") String cpf) {
+        var cliente = clienteService.getByCpf(cpf);
+        if (cliente.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(cliente);
     }
 }
