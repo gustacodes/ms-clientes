@@ -20,12 +20,6 @@ public class ClienteController {
 
     private final ClienteService clienteService;
 
-    @GetMapping("/teste")
-    public String status() {
-        log.info("OBTENDO STATUS DO MICROSERVICES DE CLIENTES");
-        return "ok";
-    }
-
     @PostMapping
     public ResponseEntity<?> save(@RequestBody ClienteSaveRequest saveRequest) {
         var cliente = saveRequest.toModel();
